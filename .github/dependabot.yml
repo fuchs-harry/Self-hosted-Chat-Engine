@@ -5,18 +5,33 @@ updates:
     schedule:
       interval: weekly
     groups:
-      ai-sdk:
-        patterns: ["ai", "@ai-sdk/*"]
-      radix:
-        patterns: ["@radix-ui/*"]
+      # One PR per week for routine minor/patch updates.
+      minor-and-patch:
+        update-types: ["minor", "patch"]
+    ignore:
+      # Major upgrades of the toolchain need deliberate migration work.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      # Types follow the Node.js LTS line we run on, not the newest Node.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     open-pull-requests-limit: 5
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
 
   - package-ecosystem: docker
     directory: /
     schedule:
       interval: monthly
+    ignore:
+      # Stay on the Node.js LTS line; odd major versions are short-lived.
+      - dependency-name: "node"
+        update-types: ["version-update:semver-major"]

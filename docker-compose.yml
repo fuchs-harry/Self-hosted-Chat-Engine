@@ -1,0 +1,67 @@
+# Two containers: Postgres (with pgvector) and the app. That's the whole
+# stack: no Redis, no queue, no vector database. The heartbeat inside the
+# app does the background work using Postgres.
+#
+#   cp .env.example .env        # set APP_SECRET and POSTGRES_PASSWORD
+#   docker compose up -d
+#   open http://<server>:3000   # first visit creates the admin account
+#
+# Fully on-prem models: docker compose --profile ollama up -d
+
+name: chat-engine
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-chat}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-chat}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-chat} -d ${POSTGRES_DB:-chat}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    # Not published: only the app talks to the database.
+
+  app:
+    build: .
+    image: self-hosted-chat-engine:latest
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-chat}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-chat}
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    volumes:
+      # Mount file shares here for the "Network share" connector, e.g. a
+      # CIFS/SMB mount on the host: /mnt/fileserver/Handbuch:/data/shares/handbuch:ro
+      - ./data/shares:/data/shares:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Optional local models. Pull one after start:
+  #   docker compose exec ollama ollama pull qwen3:30b-a3b
+  #   docker compose exec ollama ollama pull bge-m3
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["ollama"]
+    restart: unless-stopped
+    volumes:
+      - ollama:/root/.ollama
+    # NVIDIA GPU (needs the NVIDIA Container Toolkit on the host):
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+volumes:
+  pgdata:
+  ollama:

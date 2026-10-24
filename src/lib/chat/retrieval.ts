@@ -6,6 +6,18 @@ import { messageText, type ChatMessage, type KnowledgeScope, type Source } from 
 
 export type Retrieval = { hits: Hit[]; context: string; sources: Source[] };
 
+/** Short preview without Markdown syntax, for the source list. */
+function plainSnippet(content: string): string {
+  return content
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/(\*\*|__|\*|_|`)/g, "")
+    .replace(/^\s*[-*+]\s+/gm, "")
+    .replace(/\|/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 280);
+}
+
 /**
  * Short follow-ups ("and for Vienna?") carry little meaning alone, so the
  * previous user question is added to the search query.
@@ -36,7 +48,7 @@ export async function retrieve(
       title: h.title,
       knowledgeBase: h.kbName,
       score: Math.round(h.score * 100) / 100,
-      snippet: h.content.slice(0, 280),
+      snippet: plainSnippet(h.content),
       page: h.page,
       url: `/api/documents/${h.documentId}`,
     })),

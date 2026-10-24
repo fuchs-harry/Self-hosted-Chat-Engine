@@ -8,7 +8,7 @@ import { addUpload, createKnowledgeBase } from "./index";
 export const DEMO_KB_NAME = "Alpenblick Technik GmbH (Demo)";
 
 function demoDir(): string {
-  return process.env.DEMO_DATA_DIR || path.join(process.cwd(), "examples", "demo-data");
+  return process.env.DEMO_DATA_DIR || path.join(/*turbopackIgnore: true*/ process.cwd(), "examples", "demo-data");
 }
 
 /**
@@ -30,9 +30,9 @@ export async function loadDemoData(user: User): Promise<{ id: string; files: num
     user,
   );
 
-  const files = (await readdir(demoDir())).filter((f) => !f.startsWith("."));
+  const files = (await readdir(/*turbopackIgnore: true*/ demoDir())).filter((f) => !f.startsWith("."));
   for (const name of files) {
-    const bytes = new Uint8Array(await readFile(path.join(demoDir(), name)));
+    const bytes = new Uint8Array(await readFile(/*turbopackIgnore: true*/ path.join(demoDir(), name)));
     await addUpload(id, { name, type: "", bytes }, user);
   }
   return { id, files: files.length, existed: false };

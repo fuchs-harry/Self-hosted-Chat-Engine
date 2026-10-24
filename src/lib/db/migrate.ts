@@ -7,7 +7,7 @@ import { db } from "@/lib/db";
 const MIGRATION_LOCK = 727_001;
 
 export function migrationsDir(): string {
-  return process.env.MIGRATIONS_DIR || path.join(process.cwd(), "db", "migrations");
+  return process.env.MIGRATIONS_DIR || path.join(/*turbopackIgnore: true*/ process.cwd(), "db", "migrations");
 }
 
 /**
@@ -30,12 +30,12 @@ export async function migrate(): Promise<string[]> {
         (r) => r.version,
       ),
     );
-    const files = (await readdir(migrationsDir())).filter((f) => f.endsWith(".sql")).sort();
+    const files = (await readdir(/*turbopackIgnore: true*/ migrationsDir())).filter((f) => f.endsWith(".sql")).sort();
 
     for (const file of files) {
       const version = file.replace(/\.sql$/, "");
       if (done.has(version)) continue;
-      const body = await readFile(path.join(migrationsDir(), file), "utf8");
+      const body = await readFile(/*turbopackIgnore: true*/ path.join(migrationsDir(), file), "utf8");
       await tx.unsafe(body);
       await tx`INSERT INTO schema_migrations (version) VALUES (${version})`;
       applied.push(version);

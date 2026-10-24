@@ -1,5 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope, Geist_Mono } from "next/font/google";
+import { I18nProvider } from "@/components/i18n-provider";
+import { getDictionary } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n/server";
 import "./globals.css";
 
 // next/font downloads the font files at build time and serves them from this
@@ -32,10 +35,15 @@ export const viewport: Viewport = {
   themeColor: "#050505",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale();
   return (
-    <html lang="de" className={`${manrope.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="h-full">{children}</body>
+    <html lang={locale} className={`${manrope.variable} ${geistMono.variable} h-full antialiased`}>
+      <body className="h-full">
+        <I18nProvider t={getDictionary(locale)} locale={locale}>
+          {children}
+        </I18nProvider>
+      </body>
     </html>
   );
 }

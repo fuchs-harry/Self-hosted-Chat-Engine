@@ -1,0 +1,61 @@
+// English strings. This file defines the dictionary shape; every other
+// language must provide the same keys (enforced by the Dictionary type).
+export const en = {
+  common: {
+    save: "Save",
+    saved: "Saved",
+    cancel: "Cancel",
+    delete: "Delete",
+    remove: "Remove",
+    edit: "Edit",
+    create: "Create",
+    close: "Close",
+    loading: "Loading…",
+    error: "Something went wrong.",
+    confirmDelete: "Delete permanently?",
+    yes: "Yes",
+    no: "No",
+    name: "Name",
+    description: "Description",
+    status: "Status",
+    actions: "Actions",
+    never: "never",
+    optional: "optional",
+    search: "Search",
+    copy: "Copy",
+    copied: "Copied",
+    retry: "Try again",
+    back: "Back",
+    enabled: "Enabled",
+    disabled: "Disabled",
+  },
+  auth: {
+    signIn: "Sign in",
+    signOut: "Sign out",
+    email: "E-mail",
+    password: "Password",
+    invalid: "E-mail or password is incorrect.",
+    welcome: "Welcome back",
+    welcomeSub: "Sign in to your company assistant.",
+    setupTitle: "Set up your workspace",
+    setupSub:
+      "Create the first administrator account. You can invite colleagues afterwards.",
+    setupCta: "Create admin account",
+    yourName: "Your name",
+    passwordHint: "At least 10 characters.",
+    hostedHere: "Runs on your own server. Your data stays with you.",
+  },
+  nav: {
+    newChat: "New chat",
+    chats: "Chats",
+    pinned: "Pinned",
+    knowledge: "Knowledge",
+    settings: "Settings",
+    admin: "Administration",
+    noChats: "No chats yet.",
+    searchChats: "Search chats",
+  },
+};
+
+type Widen<T> = { [K in keyof T]: T[K] extends string ? string : Widen<T[K]> };
+export type Dictionary = Widen<typeof en>;

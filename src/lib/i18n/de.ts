@@ -75,6 +75,7 @@ export const de: Dictionary = {
     noModelsAdmin: "Verbinden Sie einen Modell-Anbieter unter Administration → Modelle.",
     noModelsMember: "Bitte wenden Sie sich an Ihre Administration, um einen Modell-Anbieter zu verbinden.",
     thinking: "Denkt nach…",
+    reasoning: "Gedankengang",
     sources: "Quellen",
     page: "S.",
     error: "Die Antwort konnte nicht erstellt werden.",

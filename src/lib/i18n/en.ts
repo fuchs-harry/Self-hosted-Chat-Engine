@@ -75,6 +75,7 @@ export const en = {
     noModelsAdmin: "Connect a model provider under Administration → Models.",
     noModelsMember: "Please ask your administrator to connect a model provider.",
     thinking: "Thinking…",
+    reasoning: "Reasoning",
     sources: "Sources",
     page: "p.",
     error: "The answer could not be generated.",

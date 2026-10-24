@@ -48,6 +48,22 @@ export function Message({
         <p className="animate-pulse text-sm text-muted-foreground">{t.chat.thinking}</p>
       ) : (
         message.parts.map((part, i) => {
+          if (part.type === "reasoning") {
+            if (!part.text.trim()) return null;
+            return (
+              <details key={i} className="group/r rounded-lg border border-border bg-card/50 text-sm">
+                <summary className="cursor-pointer list-none px-3 py-1.5 text-[12.5px] text-muted-foreground select-none hover:text-foreground">
+                  <span className="eyebrow">{t.chat.reasoning}</span>
+                  {streaming && i === message.parts.length - 1 && (
+                    <span className="ml-2 animate-pulse">…</span>
+                  )}
+                </summary>
+                <div className="border-t border-border px-3 py-2 text-[13px] leading-relaxed whitespace-pre-wrap text-muted-foreground">
+                  {part.text.trim()}
+                </div>
+              </details>
+            );
+          }
           if (part.type === "text") {
             const last = i === message.parts.length - 1;
             return (

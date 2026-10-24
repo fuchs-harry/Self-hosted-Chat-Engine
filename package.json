@@ -2,8 +2,30 @@
   "name": "self-hosted-chat-engine",
   "version": "0.1.0",
   "private": true,
-  "description": "Self-hosted, GDPR-first AI chat for companies: your documents, your server, your choice of EU-compliant model.",
+  "description": "Self-hosted, GDPR-first AI assistant for companies: chat with your documents using on-prem or EU-hosted models.",
   "license": "Apache-2.0",
+  "author": "Harald Fuchs (https://github.com/fuchs-harry)",
+  "homepage": "https://github.com/fuchs-harry/Self-hosted-Chat-Engine#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fuchs-harry/Self-hosted-Chat-Engine.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fuchs-harry/Self-hosted-Chat-Engine/issues"
+  },
+  "keywords": [
+    "self-hosted",
+    "gdpr",
+    "dsgvo",
+    "rag",
+    "llm",
+    "chatbot",
+    "pgvector",
+    "nextjs",
+    "ollama",
+    "sharepoint",
+    "eu-ai-act"
+  ],
   "engines": {
     "node": ">=22"
   },

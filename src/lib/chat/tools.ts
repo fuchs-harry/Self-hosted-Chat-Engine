@@ -3,6 +3,7 @@ import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 import type { User } from "@/lib/auth/users";
 import { createFile } from "@/lib/documents";
+import { addMemory } from "@/lib/memory";
 import { searchableKbIds } from "@/lib/knowledge";
 import { hybridSearch } from "@/lib/rag/search";
 import type { KnowledgeScope } from "./types";
@@ -11,6 +12,8 @@ export type ToolContext = {
   user: User;
   chatId: string;
   knowledge: KnowledgeScope;
+  /** Offer the remember tool (memory enabled for org and user). */
+  memory: boolean;
 };
 
 /**
@@ -62,7 +65,21 @@ export function buildTools(ctx: ToolContext) {
     }),
   } satisfies ToolSet;
 
-  return tools;
+  if (!ctx.memory) return tools;
+  return {
+    ...tools,
+    remember: tool({
+      description:
+        "Save a durable fact about the user to long-term memory. Use ONLY when the user explicitly asks you to remember or note something about themselves or their preferences. Never store secrets or sensitive personal data.",
+      inputSchema: z.object({
+        fact: z.string().min(3).max(200).describe("One short sentence in third person"),
+      }),
+      execute: async ({ fact }) => {
+        await addMemory(ctx.user.id, fact, { source: "tool", chatId: ctx.chatId });
+        return { saved: true };
+      },
+    }),
+  };
 }
 
 export type ChatTools = ReturnType<typeof buildTools>;

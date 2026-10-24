@@ -21,6 +21,7 @@ import {
   type KnowledgeScope,
 } from "@/lib/chat/types";
 import { env } from "@/lib/env";
+import { memoriesForPrompt, memoryActive, scheduleMemoryUpdate } from "@/lib/memory";
 import { getLocale } from "@/lib/i18n/server";
 import { ModelUnavailableError, resolveChatModel } from "@/lib/providers/registry";
 import { getSettings } from "@/lib/settings";
@@ -125,7 +126,8 @@ export const POST = route(async (req: Request) => {
     console.error("[chat] retrieval failed:", (err as Error).message);
   }
 
-  const tools = buildTools({ user, chatId: chat.id, knowledge });
+  const [memoryOn, memories] = await Promise.all([memoryActive(user.id), memoriesForPrompt(user.id)]);
+  const tools = buildTools({ user, chatId: chat.id, knowledge, memory: memoryOn });
 
   const instructions = buildInstructions({
     appName: env().APP_NAME,
@@ -133,6 +135,7 @@ export const POST = route(async (req: Request) => {
     user,
     locale,
     knowledge: retrieval ? retrieval.context : undefined,
+    memories,
     tools: Object.keys(tools),
   });
 
@@ -179,6 +182,7 @@ export const POST = route(async (req: Request) => {
       },
       onEnd: async ({ messages: finalMessages }) => {
         await saveMessages(chat.id, finalMessages as ChatMessage[]);
+        await scheduleMemoryUpdate(user.id, chat.id);
         const answer = finalMessages.at(-1);
         if (isFirstExchange && answer?.role === "assistant") {
           void titleChat(chat.id, messageText(lastUser), messageText(answer));

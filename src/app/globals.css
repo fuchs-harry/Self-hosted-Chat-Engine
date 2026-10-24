@@ -1,0 +1,373 @@
+@import "tailwindcss";
+
+/* Monochrome token set. Names follow the shadcn convention so pasted
+   shadcn components (bg-muted, border-border, ...) work unchanged.
+   Dark only: the look is black on black with chrome accents. */
+:root {
+  --background: #050505;
+  --foreground: #f5f5f5;
+  --card: #0c0c0c;
+  --card-foreground: #f5f5f5;
+  --popover: #0e0e0e;
+  --popover-foreground: #f5f5f5;
+  --primary: #f5f5f5;
+  --primary-foreground: #050505;
+  --secondary: #1a1a1a;
+  --secondary-foreground: #f5f5f5;
+  --muted: #141414;
+  --muted-foreground: #a3a3a3;
+  --accent: #1a1a1a;
+  --accent-foreground: #f5f5f5;
+  --destructive: #ef4444;
+  --success: #4ade80;
+  --warning: #fbbf24;
+  --border: rgba(255, 255, 255, 0.12);
+  --input: rgba(255, 255, 255, 0.16);
+  --ring: rgba(255, 255, 255, 0.5);
+  --radius: 0.625rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: var(--font-manrope);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-manrope), system-ui, sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+}
+
+/* Small uppercase mono labels: section eyebrows, badges, table heads. */
+.eyebrow {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+/* Headline with a soft light sweep. Plain white with reduced motion. */
+.title-sweep {
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+  background-image: linear-gradient(
+    100deg,
+    #ffffff 0%,
+    #ffffff 40%,
+    #8a8a8a 50%,
+    #ffffff 60%,
+    #ffffff 100%
+  );
+  background-size: 250% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: title-sweep 7s ease-in-out infinite;
+}
+
+@keyframes title-sweep {
+  0%,
+  15% {
+    background-position: 100% 0;
+  }
+  60%,
+  100% {
+    background-position: 0% 0;
+  }
+}
+
+.fade-up {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fade-up 700ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes fade-up {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Chrome buttons. The ring is a conic gradient painted into the border box
+   (transparent border, fill on the padding box). On hover the ring turns
+   and a light band sweeps across. --chrome-angle is registered so it can
+   transition. */
+@property --chrome-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.chrome-btn {
+  --chrome-ring: conic-gradient(
+    from var(--chrome-angle),
+    #ffffff 0deg,
+    #5c5c5c 50deg,
+    #e6e6e6 100deg,
+    #2e2e2e 160deg,
+    #f2f2f2 210deg,
+    #4a4a4a 270deg,
+    #d4d4d4 320deg,
+    #ffffff 360deg
+  );
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1.5px solid transparent;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+    0 10px 28px -12px rgba(0, 0, 0, 0.9);
+  transition:
+    --chrome-angle 900ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-position 900ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 400ms ease,
+    transform 400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.chrome-btn--solid {
+  background:
+    linear-gradient(
+        100deg,
+        #262626 0%,
+        #6f6f6f 14%,
+        #1a1a1a 28%,
+        #4d4d4d 38%,
+        #c9c9c9 46%,
+        #111111 53%,
+        #3b3b3b 66%,
+        #8c8c8c 80%,
+        #2b2b2b 100%
+      )
+      padding-box,
+    var(--chrome-ring) border-box;
+  background-size:
+    220% 100%,
+    100% 100%;
+  background-position:
+    0% 0,
+    0 0;
+}
+
+.chrome-btn--outline {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), transparent 60%)
+      padding-box,
+    linear-gradient(#0a0a0a, #0a0a0a) padding-box,
+    var(--chrome-ring) border-box;
+}
+
+.chrome-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    110deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.22) 50%,
+    transparent 65%
+  );
+  transform: translateX(-120%);
+  pointer-events: none;
+}
+
+.chrome-btn:hover:not(:disabled) {
+  --chrome-angle: 180deg;
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 0 26px -6px rgba(255, 255, 255, 0.3),
+    0 14px 32px -12px rgba(0, 0, 0, 0.9);
+}
+
+.chrome-btn--solid:hover:not(:disabled) {
+  background-position:
+    100% 0,
+    0 0;
+}
+
+.chrome-btn:hover:not(:disabled)::after {
+  transform: translateX(120%);
+  transition: transform 800ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.chrome-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+  transition-duration: 120ms;
+}
+
+.chrome-btn:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+
+/* Chat message markdown. Kept hand-written so the project does not need
+   the typography plugin. */
+.prose-chat {
+  line-height: 1.7;
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+.prose-chat > * + * {
+  margin-top: 0.85em;
+}
+.prose-chat h1,
+.prose-chat h2,
+.prose-chat h3 {
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 1.4em;
+}
+.prose-chat h1 {
+  font-size: 1.35em;
+}
+.prose-chat h2 {
+  font-size: 1.2em;
+}
+.prose-chat h3 {
+  font-size: 1.05em;
+}
+.prose-chat ul {
+  list-style: disc;
+  padding-left: 1.3em;
+}
+.prose-chat ol {
+  list-style: decimal;
+  padding-left: 1.4em;
+}
+.prose-chat li + li {
+  margin-top: 0.3em;
+}
+.prose-chat a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(255, 255, 255, 0.35);
+}
+.prose-chat strong {
+  font-weight: 600;
+}
+.prose-chat code {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.86em;
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 0.1em 0.35em;
+}
+.prose-chat pre {
+  background: #0b0b0b;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.9em 1em;
+  overflow-x: auto;
+}
+.prose-chat pre code {
+  background: none;
+  border: 0;
+  padding: 0;
+}
+.prose-chat blockquote {
+  border-left: 2px solid rgba(255, 255, 255, 0.25);
+  padding-left: 1em;
+  color: var(--muted-foreground);
+}
+.prose-chat table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92em;
+}
+.prose-chat th,
+.prose-chat td {
+  border: 1px solid var(--border);
+  padding: 0.45em 0.7em;
+  text-align: left;
+}
+.prose-chat th {
+  background: var(--muted);
+  font-weight: 600;
+}
+.prose-chat hr {
+  border-color: var(--border);
+}
+
+/* Blinking caret while a reply streams. */
+.stream-caret::after {
+  content: "";
+  display: inline-block;
+  width: 0.5em;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: -0.12em;
+  background: var(--foreground);
+  animation: caret 1s steps(1) infinite;
+}
+
+@keyframes caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title-sweep {
+    animation: none;
+    background-image: none;
+    -webkit-text-fill-color: #fff;
+  }
+  .fade-up {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .chrome-btn,
+  .chrome-btn::after {
+    transition: none !important;
+  }
+  .chrome-btn:hover:not(:disabled) {
+    transform: none;
+  }
+  .stream-caret::after {
+    animation: none;
+  }
+}

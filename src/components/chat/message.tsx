@@ -1,28 +1,32 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy, RotateCcw } from "lucide-react";
+import { Check, Copy, FileDown, Loader2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ResidencyBadge } from "@/components/residency-badge";
 import { useI18n } from "@/components/i18n-provider";
 import { messageText, type ChatMessage } from "@/lib/chat/types";
 import { cn } from "@/lib/utils";
 import { Markdown } from "./markdown";
 import { Sources } from "./sources";
+import { ToolPart } from "./tool-part";
 
 export function Message({
   message,
   streaming,
   isLast,
   onRegenerate,
-  renderPart,
 }: {
   message: ChatMessage;
   streaming: boolean;
   isLast: boolean;
   onRegenerate?: () => void;
-  /** Renders non-text parts (tools, documents). */
-  renderPart?: (part: ChatMessage["parts"][number], index: number) => React.ReactNode;
 }) {
   const { t } = useI18n();
 
@@ -39,7 +43,8 @@ export function Message({
   const text = messageText(message);
   const meta = message.metadata;
   const hasContent = message.parts.some(
-    (p) => (p.type === "text" && p.text.trim()) || p.type.startsWith("tool-"),
+    (p) =>
+      ((p.type === "text" || p.type === "reasoning") && p.text.trim()) || p.type.startsWith("tool-"),
   );
 
   return (
@@ -72,7 +77,10 @@ export function Message({
               </div>
             );
           }
-          return renderPart ? <div key={i}>{renderPart(part, i)}</div> : null;
+          if (part.type.startsWith("tool-")) {
+            return <ToolPart key={i} part={part as Parameters<typeof ToolPart>[0]["part"]} />;
+          }
+          return null;
         })
       )}
 
@@ -81,6 +89,7 @@ export function Message({
       {!streaming && (
         <div className="flex flex-wrap items-center gap-1 opacity-70 transition-opacity group-hover:opacity-100">
           {text && <CopyButton text={text} />}
+          {text && <ExportMenu text={text} />}
           {isLast && onRegenerate && (
             <Button variant="ghost" size="icon-xs" onClick={onRegenerate} title={t.chat.regenerate}>
               <RotateCcw />
@@ -114,5 +123,47 @@ function CopyButton({ text }: { text: string }) {
     >
       {done ? <Check /> : <Copy />}
     </Button>
+  );
+}
+
+function ExportMenu({ text }: { text: string }) {
+  const { t } = useI18n();
+  const [busy, setBusy] = useState(false);
+
+  async function exportAs(format: "pdf" | "docx" | "md") {
+    setBusy(true);
+    try {
+      const firstLine = text.split("\n").find((l) => l.trim()) ?? "Export";
+      const title = firstLine.replace(/^#+\s*/, "").replace(/[*_`]/g, "").slice(0, 80);
+      const res = await fetch("/api/files", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ format, title, markdown: text }),
+      });
+      if (!res.ok) return;
+      const file = (await res.json()) as { url: string; filename: string };
+      const a = document.createElement("a");
+      a.href = file.url;
+      a.download = file.filename;
+      a.click();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        className="grid size-6 place-items-center rounded-md text-muted-foreground outline-none hover:bg-muted hover:text-foreground"
+        title={t.tools.export}
+      >
+        {busy ? <Loader2 className="size-3.5 animate-spin" /> : <FileDown className="size-3.5" />}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="min-w-36">
+        <DropdownMenuItem onSelect={() => void exportAs("pdf")}>PDF</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => void exportAs("docx")}>Word (DOCX)</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => void exportAs("md")}>Markdown</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

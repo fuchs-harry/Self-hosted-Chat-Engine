@@ -90,6 +90,18 @@ export const de: Dictionary = {
     deleteBody: "Der Chat und alle Nachrichten werden endgültig gelöscht.",
     recommended: "empfohlen",
   },
+  tools: {
+    creatingDocument: "Dokument wird erstellt…",
+    documentFailed: "Das Dokument konnte nicht erstellt werden.",
+    download: "Herunterladen",
+    searching: "Durchsuche Firmenwissen…",
+    searched: "Gesucht nach „{q}“",
+    results: "{n} Treffer",
+    remembering: "Merke mir das…",
+    remembered: "Gemerkt",
+    export: "Exportieren",
+    exporting: "Exportiere…",
+  },
   knowledge: {
     title: "Wissen",
     subtitle:

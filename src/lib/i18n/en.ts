@@ -90,6 +90,18 @@ export const en = {
     deleteBody: "The chat and all its messages will be deleted permanently.",
     recommended: "recommended",
   },
+  tools: {
+    creatingDocument: "Creating document…",
+    documentFailed: "The document could not be created.",
+    download: "Download",
+    searching: "Searching company knowledge…",
+    searched: "Searched for “{q}”",
+    results: "{n} results",
+    remembering: "Remembering…",
+    remembered: "Remembered",
+    export: "Export",
+    exporting: "Exporting…",
+  },
   knowledge: {
     title: "Knowledge",
     subtitle:

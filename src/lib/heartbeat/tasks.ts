@@ -1,6 +1,8 @@
 import "server-only";
 import { db } from "@/lib/db";
 import { purgeExpiredSessions } from "@/lib/auth/session";
+import { staleDocumentIds } from "@/lib/rag/ingest";
+import { enqueue } from "./jobs";
 
 /**
  * Periodic tasks run by the heartbeat. Each runs at most once per interval
@@ -13,6 +15,17 @@ export type PeriodicTask = {
 };
 
 export const TASKS: PeriodicTask[] = [
+  {
+    name: "embeddings.reconcile",
+    everySeconds: 600,
+    run: async () => {
+      const ids = await staleDocumentIds();
+      for (const id of ids) {
+        await enqueue("ingest_document", { documentId: id }, { dedupeKey: `ingest:${id}` });
+      }
+      return ids.length ? `${ids.length} documents queued for re-embedding` : undefined;
+    },
+  },
   {
     name: "sessions.purge",
     everySeconds: 3600,

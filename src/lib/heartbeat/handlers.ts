@@ -1,4 +1,5 @@
 import "server-only";
+import { ingestDocument } from "@/lib/rag/ingest";
 
 /**
  * Job type → implementation. Handlers receive the job payload and throw to
@@ -6,4 +7,6 @@ import "server-only";
  */
 export type JobHandler = (payload: Record<string, unknown>) => Promise<void>;
 
-export const JOB_HANDLERS: Record<string, JobHandler> = {};
+export const JOB_HANDLERS: Record<string, JobHandler> = {
+  ingest_document: async (p) => ingestDocument(String(p.documentId)),
+};

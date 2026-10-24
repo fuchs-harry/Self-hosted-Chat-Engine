@@ -8,6 +8,7 @@ export type ChatRow = {
   title: string;
   model_key: string | null;
   knowledge_base_id: string | null;
+  knowledge_scope: "none" | "all" | "kb";
   pinned: boolean;
   created_at: Date;
   updated_at: Date;
@@ -86,7 +87,9 @@ export async function saveMessages(chatId: string, messages: ChatMessage[]): Pro
 export async function updateChat(
   id: string,
   userId: string,
-  patch: Partial<Pick<ChatRow, "title" | "pinned" | "model_key" | "knowledge_base_id">>,
+  patch: Partial<
+    Pick<ChatRow, "title" | "pinned" | "model_key" | "knowledge_base_id" | "knowledge_scope">
+  >,
 ): Promise<boolean> {
   const sql = db();
   const keys = Object.keys(patch) as (keyof typeof patch)[];

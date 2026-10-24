@@ -8,8 +8,16 @@ export type Source = {
   knowledgeBase?: string;
   score: number;
   snippet: string;
+  page?: number | null;
   url?: string | null;
 };
+
+export type KnowledgeScope =
+  | { scope: "none" }
+  | { scope: "all" }
+  | { scope: "kb"; kbId: string };
+
+export type KnowledgeOption = { id: string; name: string; visibility: "org" | "private" };
 
 export type ChatMetadata = {
   createdAt?: number;

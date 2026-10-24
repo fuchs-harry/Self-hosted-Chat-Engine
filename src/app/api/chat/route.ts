@@ -12,7 +12,13 @@ import { audit } from "@/lib/audit";
 import { buildInstructions } from "@/lib/chat/prompt";
 import { ensureChat, loadMessages, saveMessages, updateChat } from "@/lib/chat/store";
 import { titleChat } from "@/lib/chat/title";
-import { messageText, type ChatMessage, type ChatMetadata } from "@/lib/chat/types";
+import { retrieve, type Retrieval } from "@/lib/chat/retrieval";
+import {
+  messageText,
+  type ChatMessage,
+  type ChatMetadata,
+  type KnowledgeScope,
+} from "@/lib/chat/types";
 import { env } from "@/lib/env";
 import { getLocale } from "@/lib/i18n/server";
 import { ModelUnavailableError, resolveChatModel } from "@/lib/providers/registry";
@@ -29,6 +35,13 @@ const bodySchema = z.object({
   }),
   trigger: z.enum(["submit-message", "regenerate-message"]).default("submit-message"),
   model: z.string().max(200).optional(),
+  knowledge: z
+    .discriminatedUnion("scope", [
+      z.object({ scope: z.literal("none") }),
+      z.object({ scope: z.literal("all") }),
+      z.object({ scope: z.literal("kb"), kbId: z.string().uuid() }),
+    ])
+    .optional(),
 });
 
 /** Conversation the model should see for this request. */
@@ -89,15 +102,34 @@ export const POST = route(async (req: Request) => {
 
   const [settings, locale] = await Promise.all([getSettings(), getLocale()]);
 
+  const knowledge: KnowledgeScope =
+    body.knowledge ??
+    (chat.knowledge_scope === "kb" && chat.knowledge_base_id
+      ? { scope: "kb", kbId: chat.knowledge_base_id }
+      : { scope: chat.knowledge_scope === "all" ? "all" : "none" });
+
   // Persist the user's turn before streaming so it survives provider errors.
   await saveMessages(chat.id, messages);
-  if (option.key !== chat.model_key) await updateChat(chat.id, user.id, { model_key: option.key });
+  await updateChat(chat.id, user.id, {
+    model_key: option.key,
+    knowledge_scope: knowledge.scope,
+    knowledge_base_id: knowledge.scope === "kb" ? knowledge.kbId : null,
+  });
+
+  let retrieval: Retrieval | null = null;
+  try {
+    retrieval = await retrieve(user, knowledge, messages);
+  } catch (err) {
+    // Retrieval problems (embedding API down) degrade to a plain answer.
+    console.error("[chat] retrieval failed:", (err as Error).message);
+  }
 
   const instructions = buildInstructions({
     appName: env().APP_NAME,
     settings,
     user,
     locale,
+    knowledge: retrieval ? retrieval.context : undefined,
   });
 
   const result = streamText({
@@ -113,12 +145,18 @@ export const POST = route(async (req: Request) => {
     modelKey: option.key,
     modelLabel: option.label,
     residency: option.residency,
+    sources: retrieval?.sources.length ? retrieval.sources : undefined,
   };
 
   await audit("chat.request", {
     userId: user.id,
     target: chat.id,
-    detail: { model: option.key, residency: option.residency },
+    detail: {
+      model: option.key,
+      residency: option.residency,
+      knowledge: knowledge.scope,
+      sources: retrieval?.sources.length ?? 0,
+    },
   });
 
   const isFirstExchange = !previous.some((m) => m.role === "assistant");

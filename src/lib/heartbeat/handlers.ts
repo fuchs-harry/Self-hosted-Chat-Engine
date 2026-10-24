@@ -1,4 +1,5 @@
 import "server-only";
+import { syncConnector } from "@/lib/connectors";
 import { ingestDocument } from "@/lib/rag/ingest";
 
 /**
@@ -9,4 +10,7 @@ export type JobHandler = (payload: Record<string, unknown>) => Promise<void>;
 
 export const JOB_HANDLERS: Record<string, JobHandler> = {
   ingest_document: async (p) => ingestDocument(String(p.documentId)),
+  sync_connector: async (p) => {
+    await syncConnector(String(p.connectorId));
+  },
 };

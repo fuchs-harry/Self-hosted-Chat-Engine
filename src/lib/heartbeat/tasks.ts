@@ -1,6 +1,7 @@
 import "server-only";
 import { db } from "@/lib/db";
 import { purgeExpiredSessions } from "@/lib/auth/session";
+import { scheduleDueConnectors } from "@/lib/connectors";
 import { staleDocumentIds } from "@/lib/rag/ingest";
 import { enqueue } from "./jobs";
 
@@ -15,6 +16,14 @@ export type PeriodicTask = {
 };
 
 export const TASKS: PeriodicTask[] = [
+  {
+    name: "connectors.schedule",
+    everySeconds: 60,
+    run: async () => {
+      const n = await scheduleDueConnectors();
+      return n ? `${n} connector syncs queued` : undefined;
+    },
+  },
   {
     name: "embeddings.reconcile",
     everySeconds: 600,

@@ -15,6 +15,7 @@ export type KnowledgeBase = {
   created_at: Date;
   document_count: number;
   ready_count: number;
+  connector_count: number;
 };
 
 export type DocumentRow = {
@@ -50,7 +51,8 @@ export async function listKnowledgeBases(user: User): Promise<KnowledgeBase[]> {
   return db()<KnowledgeBase[]>`
     SELECT k.id, k.name, k.description, k.visibility, k.owner_id, k.created_at,
            (SELECT count(*)::int FROM documents d WHERE d.kb_id = k.id) AS document_count,
-           (SELECT count(*)::int FROM documents d WHERE d.kb_id = k.id AND d.status = 'ready') AS ready_count
+           (SELECT count(*)::int FROM documents d WHERE d.kb_id = k.id AND d.status = 'ready') AS ready_count,
+           (SELECT count(*)::int FROM connectors c WHERE c.kb_id = k.id) AS connector_count
       FROM knowledge_bases k
      WHERE ${visibleTo(user)}
      ORDER BY k.visibility, k.name`;
@@ -60,7 +62,8 @@ export async function getKnowledgeBase(id: string, user: User): Promise<Knowledg
   const [row] = await db()<KnowledgeBase[]>`
     SELECT k.id, k.name, k.description, k.visibility, k.owner_id, k.created_at,
            (SELECT count(*)::int FROM documents d WHERE d.kb_id = k.id) AS document_count,
-           (SELECT count(*)::int FROM documents d WHERE d.kb_id = k.id AND d.status = 'ready') AS ready_count
+           (SELECT count(*)::int FROM documents d WHERE d.kb_id = k.id AND d.status = 'ready') AS ready_count,
+           (SELECT count(*)::int FROM connectors c WHERE c.kb_id = k.id) AS connector_count
       FROM knowledge_bases k
      WHERE k.id = ${id} AND ${visibleTo(user)}`;
   return row ?? null;

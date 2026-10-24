@@ -10,7 +10,7 @@ import { z } from "zod";
 import { HttpError, apiUser, parseBody, route } from "@/lib/api";
 import { audit } from "@/lib/audit";
 import { buildInstructions } from "@/lib/chat/prompt";
-import { getChat, loadMessages, saveMessages, updateChat } from "@/lib/chat/store";
+import { ensureChat, loadMessages, saveMessages, updateChat } from "@/lib/chat/store";
 import { titleChat } from "@/lib/chat/title";
 import { messageText, type ChatMessage, type ChatMetadata } from "@/lib/chat/types";
 import { env } from "@/lib/env";
@@ -69,7 +69,7 @@ export const POST = route(async (req: Request) => {
   const user = await apiUser();
   const body = await parseBody(req, bodySchema);
 
-  const chat = await getChat(body.id, user.id);
+  const chat = await ensureChat(body.id, user.id);
   if (!chat) throw new HttpError(404, "Chat not found");
 
   const previous = await loadMessages(chat.id);

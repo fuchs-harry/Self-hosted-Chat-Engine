@@ -19,6 +19,16 @@ export async function createChat(userId: string): Promise<string> {
   return row.id;
 }
 
+/**
+ * New chats get their id in the browser so the URL can update without a
+ * round-trip. The row is created on the first message; an id that already
+ * belongs to someone else simply yields null.
+ */
+export async function ensureChat(id: string, userId: string): Promise<ChatRow | null> {
+  await db()`INSERT INTO chats (id, user_id) VALUES (${id}, ${userId}) ON CONFLICT (id) DO NOTHING`;
+  return getChat(id, userId);
+}
+
 /** Returns the chat only if it belongs to the user. */
 export async function getChat(id: string, userId: string): Promise<ChatRow | null> {
   const [row] = await db()<ChatRow[]>`

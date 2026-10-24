@@ -7,6 +7,8 @@ const nextConfig: NextConfig = {
   // so they must not be bundled.
   serverExternalPackages: ["pdfkit", "mammoth", "unpdf"],
   poweredByHeader: false,
+  // `next dev` only serves its client runtime to these hosts.
+  allowedDevOrigins: ["127.0.0.1", ...(process.env.DEV_ORIGINS?.split(",") ?? [])],
   experimental: {
     serverActions: { bodySizeLimit: "30mb" },
   },

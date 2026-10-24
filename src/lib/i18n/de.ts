@@ -89,6 +89,9 @@ export const de: Dictionary = {
     deleteTitle: "Chat löschen?",
     deleteBody: "Der Chat und alle Nachrichten werden endgültig gelöscht.",
     recommended: "empfohlen",
+    masked: "{n} personenbezogene Angaben pseudonymisiert",
+    maskedHint:
+      "E-Mail-Adressen, IBANs, Telefonnummern u. Ä. wurden vor dem Verlassen dieses Servers durch Platzhalter ersetzt und in der Antwort wiederhergestellt.",
   },
   tools: {
     creatingDocument: "Dokument wird erstellt…",

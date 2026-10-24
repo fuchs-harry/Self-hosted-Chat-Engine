@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy, FileDown, Loader2, RotateCcw } from "lucide-react";
+import { Check, Copy, FileDown, Loader2, RotateCcw, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,6 +12,7 @@ import {
 import { ResidencyBadge } from "@/components/residency-badge";
 import { useI18n } from "@/components/i18n-provider";
 import { messageText, type ChatMessage } from "@/lib/chat/types";
+import { fmt } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { Markdown } from "./markdown";
 import { Sources } from "./sources";
@@ -101,6 +102,15 @@ export function Message({
               {meta.residency && <ResidencyBadge residency={meta.residency} />}
             </span>
           )}
+          {meta?.masked ? (
+            <span
+              className="flex items-center gap-1 text-[11.5px] text-success"
+              title={t.chat.maskedHint}
+            >
+              <ShieldCheck className="size-3.5" />
+              {fmt(t.chat.masked, { n: meta.masked })}
+            </span>
+          ) : null}
         </div>
       )}
     </div>

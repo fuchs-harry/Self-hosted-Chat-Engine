@@ -89,6 +89,9 @@ export const en = {
     deleteTitle: "Delete chat?",
     deleteBody: "The chat and all its messages will be deleted permanently.",
     recommended: "recommended",
+    masked: "{n} personal data pseudonymized",
+    maskedHint:
+      "E-mail addresses, IBANs, phone numbers and similar data were replaced with placeholders before leaving this server and restored in the answer.",
   },
   tools: {
     creatingDocument: "Creating document…",

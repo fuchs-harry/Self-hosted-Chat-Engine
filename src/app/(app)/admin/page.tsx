@@ -36,7 +36,7 @@ export default async function AdminOverview() {
   ];
 
   return (
-    <Page title={t.admin.title} subtitle={o.subtitle}>
+    <Page title={t.admin.title} subtitle={o.subtitle} eyebrow={`Version ${process.env.APP_VERSION ?? "dev"}`}>
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>

@@ -26,11 +26,18 @@ export function buildTools(ctx: ToolContext) {
       description:
         "Create a downloadable document (PDF, Word/DOCX or Markdown) from Markdown content. Use only when the user asks for a file, document, report, letter or download. Write the complete content; the user sees a download card, so don't repeat the full text in your reply.",
       inputSchema: z.object({
-        format: z.enum(["pdf", "docx", "md"]).describe("pdf for reading/printing, docx for further editing in Word"),
+        format: z
+          .enum(["pdf", "docx", "md"])
+          .default("pdf")
+          .describe("pdf for reading/printing, docx for further editing in Word"),
         title: z.string().min(1).max(200),
-        markdown: z.string().min(1).max(200_000).describe("Body in GitHub-flavored Markdown, without the title"),
+        markdown: z.string().max(200_000).optional().describe("Body in GitHub-flavored Markdown, without the title"),
+        // Small local models often say "content"; accept it instead of failing.
+        content: z.string().max(200_000).optional().describe("Alias for markdown"),
       }),
-      execute: async ({ format, title, markdown }) => {
+      execute: async ({ format, title, markdown: md, content }) => {
+        const markdown = md ?? content;
+        if (!markdown?.trim()) throw new Error("markdown is required: pass the document body as Markdown");
         const file = await createFile({
           userId: ctx.user.id,
           chatId: ctx.chatId,

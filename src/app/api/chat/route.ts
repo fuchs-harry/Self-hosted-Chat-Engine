@@ -1,4 +1,6 @@
 import {
+  InvalidToolInputError,
+  NoSuchToolError,
   convertToModelMessages,
   createIdGenerator,
   createUIMessageStreamResponse,
@@ -66,7 +68,15 @@ function nextConversation(
 
 function friendlyError(error: unknown): string {
   if (error instanceof ModelUnavailableError) return error.message;
+  // Tool problems are useful to see as they are (the model gets them too).
+  if (InvalidToolInputError.isInstance(error) || NoSuchToolError.isInstance(error)) {
+    return error.message.slice(0, 500);
+  }
   const msg = error instanceof Error ? error.message : String(error);
+  if (error instanceof Error && error.name === "Error" && !/api|http|fetch/i.test(msg)) {
+    // Errors thrown by our own tool implementations.
+    return msg.slice(0, 500);
+  }
   console.error("[chat] stream error:", msg);
   if (/401|unauthori[sz]ed|invalid.*key|api key/i.test(msg)) {
     return "The model provider rejected the credentials. Please ask an administrator to check the API key.";

@@ -161,17 +161,20 @@ export function ConnectorsPanel({
         </ul>
       )}
 
-      <ConnectorDialog
-        kbId={kbId}
-        isAdmin={isAdmin}
-        connector={editing === "new" ? null : editing}
-        open={editing !== null}
-        onClose={() => setEditing(null)}
-        onSaved={async () => {
-          setEditing(null);
-          await refresh();
-        }}
-      />
+      {editing !== null && (
+        // Keyed so every open starts from a fresh form.
+        <ConnectorDialog
+          key={editing === "new" ? "new" : editing.id}
+          kbId={kbId}
+          isAdmin={isAdmin}
+          connector={editing === "new" ? null : editing}
+          onClose={() => setEditing(null)}
+          onSaved={async () => {
+            setEditing(null);
+            await refresh();
+          }}
+        />
+      )}
 
       <Dialog open={Boolean(removing)} onOpenChange={(o) => !o && setRemoving(null)}>
         <DialogContent className="max-w-sm">
@@ -202,44 +205,30 @@ function ConnectorDialog({
   kbId,
   isAdmin,
   connector,
-  open,
   onClose,
   onSaved,
 }: {
   kbId: string;
   isAdmin: boolean;
   connector: Connector | null;
-  open: boolean;
   onClose: () => void;
   onSaved: () => Promise<void>;
 }) {
   const { t, locale } = useI18n();
   const [type, setType] = useState<ConnectorType>(connector?.type ?? "sharepoint");
-  const [values, setValues] = useState<Record<string, string>>({});
-  const [name, setName] = useState("");
-  const [interval, setIntervalMinutes] = useState(60);
-  const [enabled, setEnabled] = useState(true);
+  // Secrets come back masked; their inputs start empty and keep the stored value.
+  const [values, setValues] = useState<Record<string, string>>(() => {
+    const def = connector ? getConnectorDef(connector.type) : null;
+    return connector && def
+      ? Object.fromEntries(def.fields.filter((f) => !f.secret).map((f) => [f.key, connector.config[f.key] ?? ""]))
+      : {};
+  });
+  const [name, setName] = useState(connector?.name ?? "");
+  const [interval, setIntervalMinutes] = useState(connector?.sync_interval_minutes ?? 60);
+  const [enabled, setEnabled] = useState(connector?.enabled ?? true);
   const [test, setTest] = useState<{ ok: boolean; text: string } | null>(null);
   const [busy, setBusy] = useState<"test" | "save" | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  // Reset the form whenever the dialog opens.
-  useEffect(() => {
-    if (!open) return;
-    setType(connector?.type ?? "sharepoint");
-    setName(connector?.name ?? "");
-    setIntervalMinutes(connector?.sync_interval_minutes ?? 60);
-    setEnabled(connector?.enabled ?? true);
-    const def = connector ? getConnectorDef(connector.type) : null;
-    // Secrets come back masked; the inputs start empty and keep the stored value.
-    setValues(
-      connector && def
-        ? Object.fromEntries(def.fields.filter((f) => !f.secret).map((f) => [f.key, connector.config[f.key] ?? ""]))
-        : {},
-    );
-    setTest(null);
-    setError(null);
-  }, [open, connector]);
 
   const def = getConnectorDef(type)!;
 
@@ -279,7 +268,7 @@ function ConnectorDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-xl">
         <DialogTitle>{connector ? t.connectors.edit : t.connectors.add}</DialogTitle>
         <DialogDescription>{def.description[locale]}</DialogDescription>

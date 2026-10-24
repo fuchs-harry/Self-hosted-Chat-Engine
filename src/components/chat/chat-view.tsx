@@ -40,11 +40,6 @@ export function ChatView({
   const router = useRouter();
   const [model, setModel] = useState<string | null>(initialModel);
   const [knowledge, setKnowledge] = useState<KnowledgeScope>(initialKnowledge);
-  // The transport reads the latest choices at send time.
-  const modelRef = useRef(model);
-  modelRef.current = model;
-  const knowledgeRef = useRef(knowledge);
-  knowledgeRef.current = knowledge;
   const createdRef = useRef(!isNew);
 
   const { messages, sendMessage, regenerate, stop, status, error, clearError } = useChat<ChatMessage>({
@@ -52,13 +47,13 @@ export function ChatView({
     messages: initialMessages,
     transport: new DefaultChatTransport({
       api: "/api/chat",
-      prepareSendMessagesRequest: ({ id, messages, trigger }) => ({
+      // Only the newest user message travels; the server has the history.
+      prepareSendMessagesRequest: ({ id, messages, trigger, body }) => ({
         body: {
+          ...body,
           id,
           message: messages.findLast((m) => m.role === "user"),
           trigger,
-          model: modelRef.current ?? undefined,
-          knowledge: knowledgeRef.current,
         },
       }),
     }),
@@ -87,7 +82,12 @@ export function ChatView({
       window.history.replaceState(null, "", `/chat/${id}`);
     }
     stick.current = true;
-    void sendMessage({ text });
+    void sendMessage({ text }, { body: requestBody() });
+  }
+
+  // Model and knowledge choice go with every request.
+  function requestBody() {
+    return { model: model ?? undefined, knowledge };
   }
 
   const noModels = models.length === 0;
@@ -114,7 +114,7 @@ export function ChatView({
                 streaming={busy && i === messages.length - 1 && m.role === "assistant"}
                 onRegenerate={() => {
                   clearError();
-                  void regenerate();
+                  void regenerate({ body: requestBody() });
                 }}
               />
             ))}
@@ -128,7 +128,7 @@ export function ChatView({
                   <p className="font-medium">{t.chat.error}</p>
                   <p className="mt-0.5 text-muted-foreground">{readableError(error)}</p>
                 </div>
-                <Button size="sm" variant="outline" onClick={() => void regenerate()}>
+                <Button size="sm" variant="outline" onClick={() => void regenerate({ body: requestBody() })}>
                   {t.common.retry}
                 </Button>
               </div>

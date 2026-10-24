@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,9 +9,13 @@ import { Sidebar, type SidebarProps } from "./sidebar";
 export function AppShell({ children, ...sidebar }: SidebarProps & { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const [shownPath, setShownPath] = useState(pathname);
 
   // Close the mobile drawer whenever the route changes.
-  useEffect(() => setOpen(false), [pathname]);
+  if (pathname !== shownPath) {
+    setShownPath(pathname);
+    setOpen(false);
+  }
 
   return (
     <div className="flex h-dvh overflow-hidden">

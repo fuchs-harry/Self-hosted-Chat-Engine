@@ -14,7 +14,12 @@ Thanks for helping. Bug reports, connectors, provider updates and translations a
 3. Make the change with tests. Logic in `src/lib` should have unit tests; anything touching SQL belongs in `tests/integration`.
 4. Run `npm run typecheck && npm run lint && npm test`.
 5. Use [Conventional Commits](https://www.conventionalcommits.org): `feat(connectors): add Confluence`, `fix(rag): …`, `docs: …`.
-6. Open a pull request describing *why* and how you tested it. Add screenshots for UI changes.
+6. Add a line under *Unreleased* in [CHANGELOG.md](CHANGELOG.md) if users will notice the change.
+7. Open a pull request describing *why* and how you tested it. Add screenshots for UI changes.
+
+## Releases
+
+Maintainers bump `version` in `package.json`, move the *Unreleased* changelog entries under the new version, and push a tag `vX.Y.Z`. The release workflow then publishes the Docker image to GitHub Container Registry.
 
 ## Updating model lists
 

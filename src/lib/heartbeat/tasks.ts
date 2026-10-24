@@ -4,6 +4,7 @@ import { purgeExpiredSessions } from "@/lib/auth/session";
 import { scheduleDueConnectors } from "@/lib/connectors";
 import { consolidateMemories } from "@/lib/memory";
 import { staleDocumentIds } from "@/lib/rag/ingest";
+import { purgeExpiredChats } from "@/lib/retention";
 import { enqueue } from "./jobs";
 
 /**
@@ -42,6 +43,14 @@ export const TASKS: PeriodicTask[] = [
     run: async () => {
       const n = await consolidateMemories();
       return n ? `${n} memories consolidated` : undefined;
+    },
+  },
+  {
+    name: "retention.purge",
+    everySeconds: 3600,
+    run: async () => {
+      const n = await purgeExpiredChats();
+      return n ? `${n} chats past retention deleted` : undefined;
     },
   },
   {

@@ -8,6 +8,8 @@ import { getT } from "@/lib/i18n/server";
 import { canManage, getKnowledgeBase, listDocuments } from "@/lib/knowledge";
 import { KnowledgeBaseActions } from "./kb-actions";
 import { DocumentsPanel } from "./documents-panel";
+import { ConnectorsPanel } from "./connectors-panel";
+import { listConnectors } from "@/lib/connectors";
 
 type Props = { params: Promise<{ id: string }> };
 const UUID = /^[0-9a-f-]{36}$/i;
@@ -25,7 +27,11 @@ export default async function KnowledgeBasePage({ params }: Props) {
   const user = await requireUser();
   const kb = await getKnowledgeBase(id, user);
   if (!kb) notFound();
-  const [t, documents] = await Promise.all([getT(), listDocuments(kb.id)]);
+  const [t, documents, connectors] = await Promise.all([
+    getT(),
+    listDocuments(kb.id),
+    listConnectors(kb.id),
+  ]);
   const manageable = canManage(kb, user);
 
   return (
@@ -43,12 +49,21 @@ export default async function KnowledgeBasePage({ params }: Props) {
       actions={manageable ? <KnowledgeBaseActions id={kb.id} /> : null}
     >
       {!manageable && <p className="mb-6 text-sm text-muted-foreground">{t.knowledge.readOnly}</p>}
-      <DocumentsPanel
-        kbId={kb.id}
-        initial={JSON.parse(JSON.stringify(documents))}
-        manageable={manageable}
-        maxMb={env().MAX_UPLOAD_MB}
-      />
+      <div className="flex flex-col gap-10">
+        {manageable && (
+          <ConnectorsPanel
+            kbId={kb.id}
+            initial={JSON.parse(JSON.stringify(connectors))}
+            isAdmin={user.role === "admin"}
+          />
+        )}
+        <DocumentsPanel
+          kbId={kb.id}
+          initial={JSON.parse(JSON.stringify(documents))}
+          manageable={manageable}
+          maxMb={env().MAX_UPLOAD_MB}
+        />
+      </div>
     </Page>
   );
 }

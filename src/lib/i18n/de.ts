@@ -76,6 +76,7 @@ export const de: Dictionary = {
     noModelsMember: "Bitte wenden Sie sich an Ihre Administration, um einen Modell-Anbieter zu verbinden.",
     thinking: "Denkt nach…",
     sources: "Quellen",
+    page: "S.",
     error: "Die Antwort konnte nicht erstellt werden.",
     suggestions: [
       "Fasse unsere Reisekostenrichtlinie zusammen",

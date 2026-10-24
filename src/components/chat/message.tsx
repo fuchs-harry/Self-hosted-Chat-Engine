@@ -8,6 +8,7 @@ import { useI18n } from "@/components/i18n-provider";
 import { messageText, type ChatMessage } from "@/lib/chat/types";
 import { cn } from "@/lib/utils";
 import { Markdown } from "./markdown";
+import { Sources } from "./sources";
 
 export function Message({
   message,
@@ -58,6 +59,8 @@ export function Message({
           return renderPart ? <div key={i}>{renderPart(part, i)}</div> : null;
         })
       )}
+
+      {meta?.sources?.length ? <Sources messageId={message.id} sources={meta.sources} /> : null}
 
       {!streaming && (
         <div className="flex flex-wrap items-center gap-1 opacity-70 transition-opacity group-hover:opacity-100">

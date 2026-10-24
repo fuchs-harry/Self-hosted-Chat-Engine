@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ChatView } from "@/components/chat/chat-view";
 import { requireUser } from "@/lib/auth/session";
+import { chatPageData } from "@/lib/chat/page-data";
 import { getChat, loadMessages } from "@/lib/chat/store";
-import { defaultModelKey, listModelOptions } from "@/lib/providers/registry";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -23,12 +23,7 @@ export default async function ChatPage({ params }: Props) {
   const chat = await getChat(id, user.id);
   if (!chat) notFound();
 
-  const [messages, models, fallback] = await Promise.all([
-    loadMessages(chat.id),
-    listModelOptions(),
-    defaultModelKey(),
-  ]);
-  const initialModel = models.some((m) => m.key === chat.model_key) ? chat.model_key : fallback;
+  const [messages, data] = await Promise.all([loadMessages(chat.id), chatPageData(user, chat)]);
 
   return (
     <ChatView
@@ -36,8 +31,7 @@ export default async function ChatPage({ params }: Props) {
       id={chat.id}
       isNew={false}
       initialMessages={messages}
-      models={models}
-      initialModel={initialModel}
+      {...data}
       user={{ name: user.name, role: user.role }}
     />
   );

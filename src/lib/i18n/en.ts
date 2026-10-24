@@ -76,6 +76,7 @@ export const en = {
     noModelsMember: "Please ask your administrator to connect a model provider.",
     thinking: "Thinking…",
     sources: "Sources",
+    page: "p.",
     error: "The answer could not be generated.",
     suggestions: [
       "Summarize our travel expense policy",

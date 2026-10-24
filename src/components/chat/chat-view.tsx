@@ -8,9 +8,10 @@ import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/components/i18n-provider";
 import { fmt } from "@/lib/i18n";
-import type { ChatMessage } from "@/lib/chat/types";
+import type { ChatMessage, KnowledgeOption, KnowledgeScope } from "@/lib/chat/types";
 import type { ModelOption } from "@/lib/providers/registry";
 import { Composer } from "./composer";
+import { KnowledgePicker } from "./knowledge-picker";
 import { Message } from "./message";
 import { ModelPicker } from "./model-picker";
 
@@ -20,15 +21,30 @@ export type ChatViewProps = {
   initialMessages: ChatMessage[];
   models: ModelOption[];
   initialModel: string | null;
+  knowledgeOptions: KnowledgeOption[];
+  initialKnowledge: KnowledgeScope;
   user: { name: string; role: "admin" | "member" };
 };
 
-export function ChatView({ id, isNew, initialMessages, models, initialModel, user }: ChatViewProps) {
+export function ChatView({
+  id,
+  isNew,
+  initialMessages,
+  models,
+  initialModel,
+  knowledgeOptions,
+  initialKnowledge,
+  user,
+}: ChatViewProps) {
   const { t } = useI18n();
   const router = useRouter();
   const [model, setModel] = useState<string | null>(initialModel);
+  const [knowledge, setKnowledge] = useState<KnowledgeScope>(initialKnowledge);
+  // The transport reads the latest choices at send time.
   const modelRef = useRef(model);
   modelRef.current = model;
+  const knowledgeRef = useRef(knowledge);
+  knowledgeRef.current = knowledge;
   const createdRef = useRef(!isNew);
 
   const { messages, sendMessage, regenerate, stop, status, error, clearError } = useChat<ChatMessage>({
@@ -42,6 +58,7 @@ export function ChatView({ id, isNew, initialMessages, models, initialModel, use
           message: messages.findLast((m) => m.role === "user"),
           trigger,
           model: modelRef.current ?? undefined,
+          knowledge: knowledgeRef.current,
         },
       }),
     }),
@@ -134,7 +151,12 @@ export function ChatView({ id, isNew, initialMessages, models, initialModel, use
           disabled={noModels}
           onSend={send}
           onStop={() => void stop()}
-          toolbar={<ModelPicker options={models} value={model} onChange={setModel} />}
+          toolbar={
+            <>
+              <ModelPicker options={models} value={model} onChange={setModel} />
+              <KnowledgePicker options={knowledgeOptions} value={knowledge} onChange={setKnowledge} />
+            </>
+          }
         />
       </div>
     </div>

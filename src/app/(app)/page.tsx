@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { ChatView } from "@/components/chat/chat-view";
 import { requireUser } from "@/lib/auth/session";
-import { defaultModelKey, listModelOptions } from "@/lib/providers/registry";
+import { chatPageData } from "@/lib/chat/page-data";
 
 export default async function NewChatPage({
   searchParams,
@@ -9,11 +9,7 @@ export default async function NewChatPage({
   searchParams: Promise<{ new?: string }>;
 }) {
   const user = await requireUser();
-  const [{ new: nonce }, models, initialModel] = await Promise.all([
-    searchParams,
-    listModelOptions(),
-    defaultModelKey(),
-  ]);
+  const [{ new: nonce }, data] = await Promise.all([searchParams, chatPageData(user)]);
   // A fresh id per visit; the chat row is only created with the first message.
   const id = randomUUID();
 
@@ -23,8 +19,7 @@ export default async function NewChatPage({
       id={id}
       isNew
       initialMessages={[]}
-      models={models}
-      initialModel={initialModel}
+      {...data}
       user={{ name: user.name, role: user.role }}
     />
   );

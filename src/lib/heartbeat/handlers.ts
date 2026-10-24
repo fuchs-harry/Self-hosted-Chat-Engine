@@ -1,5 +1,6 @@
 import "server-only";
 import { syncConnector } from "@/lib/connectors";
+import { updateMemoryFromChat } from "@/lib/memory";
 import { ingestDocument } from "@/lib/rag/ingest";
 
 /**
@@ -13,4 +14,5 @@ export const JOB_HANDLERS: Record<string, JobHandler> = {
   sync_connector: async (p) => {
     await syncConnector(String(p.connectorId));
   },
+  update_memory: async (p) => updateMemoryFromChat(String(p.userId), String(p.chatId)),
 };

@@ -2,6 +2,7 @@ import "server-only";
 import { db } from "@/lib/db";
 import { purgeExpiredSessions } from "@/lib/auth/session";
 import { scheduleDueConnectors } from "@/lib/connectors";
+import { consolidateMemories } from "@/lib/memory";
 import { staleDocumentIds } from "@/lib/rag/ingest";
 import { enqueue } from "./jobs";
 
@@ -33,6 +34,14 @@ export const TASKS: PeriodicTask[] = [
         await enqueue("ingest_document", { documentId: id }, { dedupeKey: `ingest:${id}` });
       }
       return ids.length ? `${ids.length} documents queued for re-embedding` : undefined;
+    },
+  },
+  {
+    name: "memory.consolidate",
+    everySeconds: 86_400,
+    run: async () => {
+      const n = await consolidateMemories();
+      return n ? `${n} memories consolidated` : undefined;
     },
   },
   {

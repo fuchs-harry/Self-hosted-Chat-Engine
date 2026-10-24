@@ -12,6 +12,7 @@ import { audit } from "@/lib/audit";
 import { buildInstructions } from "@/lib/chat/prompt";
 import { ensureChat, loadMessages, saveMessages, updateChat } from "@/lib/chat/store";
 import { titleChat } from "@/lib/chat/title";
+import { buildTools } from "@/lib/chat/tools";
 import { retrieve, type Retrieval } from "@/lib/chat/retrieval";
 import {
   messageText,
@@ -124,18 +125,22 @@ export const POST = route(async (req: Request) => {
     console.error("[chat] retrieval failed:", (err as Error).message);
   }
 
+  const tools = buildTools({ user, chatId: chat.id, knowledge });
+
   const instructions = buildInstructions({
     appName: env().APP_NAME,
     settings,
     user,
     locale,
     knowledge: retrieval ? retrieval.context : undefined,
+    tools: Object.keys(tools),
   });
 
   const result = streamText({
     model,
     instructions,
     messages: await convertToModelMessages(messages),
+    tools,
     stopWhen: isStepCount(5),
     maxRetries: 1,
   });
@@ -164,6 +169,7 @@ export const POST = route(async (req: Request) => {
   return createUIMessageStreamResponse({
     stream: toUIMessageStream({
       stream: result.stream,
+      tools,
       originalMessages: messages,
       generateMessageId: createIdGenerator({ prefix: "msg", size: 16 }),
       onError: friendlyError,

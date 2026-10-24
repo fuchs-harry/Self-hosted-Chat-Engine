@@ -1,0 +1,63 @@
+name: Bug report
+description: Something doesn't work as documented.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Please **don't** include API keys, passwords or real company data.
+        Security issues go through [private reporting](https://github.com/fuchs-harry/Self-hosted-Chat-Engine/security/advisories/new) instead.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to …
+        2. Click …
+        3. See error …
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Shown on Administration → Overview, or the git commit.
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: provider
+    attributes:
+      label: Model provider
+      multiple: true
+      options:
+        - Ollama
+        - OpenAI-compatible server (vLLM, LM Studio, …)
+        - Mistral AI
+        - STACKIT
+        - IONOS
+        - Scaleway
+        - Azure OpenAI
+        - Amazon Bedrock
+        - Google Vertex AI
+        - OpenAI
+        - Anthropic
+        - Not relevant
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Output of `docker compose logs app` around the error (check that it contains no secrets).
+      render: text
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: "Ubuntu 24.04, Docker 29, behind Caddy"

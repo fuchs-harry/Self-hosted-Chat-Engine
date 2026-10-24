@@ -15,6 +15,7 @@ import { buildInstructions } from "@/lib/chat/prompt";
 import { ensureChat, loadMessages, saveMessages, updateChat } from "@/lib/chat/store";
 import { titleChat } from "@/lib/chat/title";
 import { buildTools } from "@/lib/chat/tools";
+import { maskMessages, Pseudonymizer, restoreTransform } from "@/lib/chat/pseudonymize";
 import { retrieve, type Retrieval } from "@/lib/chat/retrieval";
 import {
   messageText,
@@ -137,25 +138,43 @@ export const POST = route(async (req: Request) => {
   }
 
   const [memoryOn, memories] = await Promise.all([memoryActive(user.id), memoriesForPrompt(user.id)]);
-  const tools = buildTools({ user, chatId: chat.id, knowledge, memory: memoryOn });
+
+  // Cloud models only see placeholders for personal data. On-prem models
+  // run inside the network, so there is nothing to protect against.
+  const pii = settings.pii_masking && option.residency !== "on-prem" ? new Pseudonymizer() : null;
+  const protect = (s: string) => (pii ? pii.mask(s) : s);
+  const modelMessages = pii ? maskMessages(messages, pii) : messages;
+  const knowledgeContext = retrieval ? protect(retrieval.context) : undefined;
+  const memoryLines = memories.map(protect);
+
+  const tools = buildTools({
+    user,
+    chatId: chat.id,
+    knowledge,
+    memory: memoryOn,
+    restore: <T,>(v: T) => (pii ? pii.unmaskDeep(v) : v),
+    protect,
+  });
 
   const instructions = buildInstructions({
     appName: env().APP_NAME,
     settings,
     user,
     locale,
-    knowledge: retrieval ? retrieval.context : undefined,
-    memories,
+    knowledge: knowledgeContext,
+    memories: memoryLines,
+    pseudonymized: Boolean(pii?.count),
     tools: Object.keys(tools),
   });
 
   const result = streamText({
     model,
     instructions,
-    messages: await convertToModelMessages(messages),
+    messages: await convertToModelMessages(modelMessages),
     tools,
     stopWhen: isStepCount(5),
     maxRetries: 1,
+    experimental_transform: pii ? restoreTransform(pii) : undefined,
   });
 
   const metadata: ChatMetadata = {
@@ -164,6 +183,7 @@ export const POST = route(async (req: Request) => {
     modelLabel: option.label,
     residency: option.residency,
     sources: retrieval?.sources.length ? retrieval.sources : undefined,
+    masked: pii?.count || undefined,
   };
 
   await audit("chat.request", {
@@ -174,6 +194,7 @@ export const POST = route(async (req: Request) => {
       residency: option.residency,
       knowledge: knowledge.scope,
       sources: retrieval?.sources.length ?? 0,
+      pseudonymized: pii?.count ?? 0,
     },
   });
 

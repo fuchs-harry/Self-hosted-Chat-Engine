@@ -14,6 +14,10 @@ export type ToolContext = {
   knowledge: KnowledgeScope;
   /** Offer the remember tool (memory enabled for org and user). */
   memory: boolean;
+  /** Puts real values back into model-provided input (see lib/pii). */
+  restore: <T>(value: T) => T;
+  /** Pseudonymizes text before it goes back to the model. */
+  protect: (text: string) => string;
 };
 
 /**
@@ -35,7 +39,8 @@ export function buildTools(ctx: ToolContext) {
         // Small local models often say "content"; accept it instead of failing.
         content: z.string().max(200_000).optional().describe("Alias for markdown"),
       }),
-      execute: async ({ format, title, markdown: md, content }) => {
+      execute: async (input) => {
+        const { format, title, markdown: md, content } = ctx.restore(input);
         const markdown = md ?? content;
         if (!markdown?.trim()) throw new Error("markdown is required: pass the document body as Markdown");
         const file = await createFile({
@@ -56,7 +61,8 @@ export function buildTools(ctx: ToolContext) {
       inputSchema: z.object({
         query: z.string().min(2).max(500).describe("What to look for, in the language of the documents"),
       }),
-      execute: async ({ query }) => {
+      execute: async (input) => {
+        const { query } = ctx.restore(input);
         const kbIds = await searchableKbIds(
           ctx.user,
           ctx.knowledge.scope === "kb" ? [ctx.knowledge.kbId] : null,
@@ -64,9 +70,9 @@ export function buildTools(ctx: ToolContext) {
         const hits = await hybridSearch(kbIds, query, 5);
         return hits.map((h, i) => ({
           n: i + 1,
-          title: h.title,
+          title: ctx.protect(h.title),
           page: h.page,
-          excerpt: h.content,
+          excerpt: ctx.protect(h.content),
         }));
       },
     }),
@@ -81,7 +87,8 @@ export function buildTools(ctx: ToolContext) {
       inputSchema: z.object({
         fact: z.string().min(3).max(200).describe("One short sentence in third person"),
       }),
-      execute: async ({ fact }) => {
+      execute: async (input) => {
+        const { fact } = ctx.restore(input);
         await addMemory(ctx.user.id, fact, { source: "tool", chatId: ctx.chatId });
         return { saved: true };
       },

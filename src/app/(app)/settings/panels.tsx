@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Brain, Check, Download, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Field, Input } from "@/components/ui/input";
@@ -288,10 +288,10 @@ export function PrivacyPanel() {
         <CardDescription>{t.settings.privacyHint}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-wrap gap-2">
-        <Button variant="outline" onClick={() => (window.location.href = "/api/me/export")}>
+        <a href="/api/me/export" download className={buttonVariants({ variant: "outline" })}>
           <Download />
           {t.settings.export}
-        </Button>
+        </a>
         <Button variant="destructive" onClick={() => setConfirm(true)}>
           <Trash2 />
           {t.settings.deleteChats}

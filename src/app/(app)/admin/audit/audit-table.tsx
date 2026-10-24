@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Download } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Select } from "@/components/ui/input";
 import { useI18n } from "@/components/i18n-provider";
 
@@ -53,10 +53,14 @@ export function AuditTable({ initial }: { initial: Row[] }) {
             </option>
           ))}
         </Select>
-        <Button variant="outline" size="sm" onClick={() => (window.location.href = `/api/admin/audit?format=csv${action ? `&action=${action}` : ""}`)}>
+        <a
+          href={`/api/admin/audit?format=csv${action ? `&action=${action}` : ""}`}
+          download
+          className={buttonVariants({ variant: "outline", size: "sm" })}
+        >
           <Download />
           {a.csv}
-        </Button>
+        </a>
       </div>
       <div className="overflow-x-auto rounded-xl border border-border">
         <table className="w-full text-sm">

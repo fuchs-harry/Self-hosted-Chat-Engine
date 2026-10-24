@@ -28,6 +28,7 @@ export function Composer({
     if (!el) return;
     el.style.height = "auto";
     el.style.height = `${Math.min(el.scrollHeight, 260)}px`;
+    el.style.overflowY = el.scrollHeight > 260 ? "auto" : "hidden";
   }, [text]);
 
   function submit() {

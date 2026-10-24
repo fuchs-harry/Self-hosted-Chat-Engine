@@ -36,11 +36,17 @@ export function parseMultistatus(xml: string): Entry[] {
 }
 
 async function propfind(c: Record<string, string>, url: string): Promise<Entry[]> {
-  const res = await fetch(url, {
-    method: "PROPFIND",
-    headers: { authorization: auth(c), depth: "1", "content-type": "application/xml" },
-    body: PROPFIND_BODY,
-  });
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "PROPFIND",
+      headers: { authorization: auth(c), depth: "1", "content-type": "application/xml" },
+      body: PROPFIND_BODY,
+    });
+  } catch (err) {
+    const cause = (err as { cause?: { code?: string } }).cause?.code;
+    throw new ConnectorConfigError(`WebDAV server not reachable (${cause ?? (err as Error).message})`);
+  }
   if (res.status === 401) throw new ConnectorConfigError("WebDAV login failed (check user and app password)");
   if (res.status === 404) throw new ConnectorConfigError(`Folder not found: ${url}`);
   if (res.status !== 207) throw new Error(`WebDAV PROPFIND returned ${res.status}`);

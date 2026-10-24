@@ -2,6 +2,7 @@ import "server-only";
 import { env } from "@/lib/env";
 import { migrate } from "@/lib/db/migrate";
 import { bootstrapAdminFromEnv } from "@/lib/auth/users";
+import { startHeartbeat } from "@/lib/heartbeat";
 
 export async function boot(): Promise<void> {
   env(); // fail fast on bad configuration
@@ -13,4 +14,6 @@ export async function boot(): Promise<void> {
   if (await bootstrapAdminFromEnv(ADMIN_EMAIL, ADMIN_PASSWORD)) {
     console.log(`[boot] created admin account ${ADMIN_EMAIL}`);
   }
+
+  startHeartbeat();
 }

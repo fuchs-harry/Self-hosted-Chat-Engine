@@ -169,9 +169,9 @@ type Factory = {
 
 const instances = new Map<string, Factory>();
 
-function buildFactory(p: ResolvedProvider): Factory {
-  const v = p.values;
-  switch (p.def.id) {
+/** Creates the AI SDK provider for a provider id and its field values. */
+export function buildFactory(id: ProviderId, v: Record<string, string>): Factory {
+  switch (id) {
     case "mistral": {
       const m = createMistral({ apiKey: v.apiKey });
       return { chat: (id) => m(id), embedding: (id) => m.embedding(id) };
@@ -206,7 +206,7 @@ function buildFactory(p: ResolvedProvider): Factory {
     case "ionos":
     case "scaleway": {
       const c = createOpenAICompatible({
-        name: p.def.id,
+        name: id,
         baseURL: v.baseURL,
         apiKey: v.apiKey || undefined,
         includeUsage: true,
@@ -220,7 +220,7 @@ function factoryFor(p: ResolvedProvider): Factory {
   const cacheKey = `${p.def.id}:${JSON.stringify(p.values)}`;
   let f = instances.get(cacheKey);
   if (!f) {
-    f = buildFactory(p);
+    f = buildFactory(p.def.id, p.values);
     instances.set(cacheKey, f);
   }
   return f;
